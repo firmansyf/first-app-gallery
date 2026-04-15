@@ -1,36 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FirstMate
+
+A private photo gallery and portfolio platform with an admin dashboard for tracking visitor analytics and receiving messages. Built with Next.js 16, React 19, and SQLite.
+
+## Features
+
+- **Public Gallery** -- Grid view of uploaded photos and videos for visitors
+- **Post Detail View** -- Full-screen media viewer with automatic view tracking
+- **Admin Dashboard** -- Stats overview (total views, posts, unread messages) with per-post visitor analytics (IP, browser, OS, location)
+- **Message Inbox** -- Floating chat widget lets visitors send messages; admin can read, reply, and delete
+- **Post Creation** -- Upload images/videos with optional text, geolocation (auto-detected + reverse geocoded via Nominatim)
+- **Profile Management** -- Update display name and avatar
+- **View Analytics** -- Tracks visitor IP, user agent, country, and city with hourly deduplication
+- **Auth** -- JWT-based cookie authentication, single admin user (no public registration)
+
+## Tech Stack
+
+| Layer       | Technology                              |
+|-------------|-----------------------------------------|
+| Framework   | Next.js 16 (App Router)                |
+| Frontend    | React 19, TypeScript, Tailwind CSS 4   |
+| Database    | SQLite via better-sqlite3               |
+| ORM         | Prisma 7                                |
+| Auth        | JWT (jsonwebtoken) + bcryptjs           |
+| File Upload | Local filesystem (`/public/uploads/`)   |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Set up the database
+npx prisma migrate dev
+
+# Seed the admin user
+npx prisma db seed
+```
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="your-secret-key-here"
+```
+
+### Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Default Admin Credentials
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Field    | Value                |
+|----------|----------------------|
+| Email    | `admin@firstmate.app`|
+| Password | `admin123`           |
 
-## Learn More
+> Change these credentials in production.
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── auth/          # Login, logout, session (register disabled)
+│   │   ├── messages/      # Public send + admin CRUD
+│   │   ├── posts/         # CRUD with pagination
+│   │   ├── views/         # View tracking + analytics
+│   │   ├── upload/        # File upload
+│   │   └── profile/       # Profile update
+│   ├── admin/             # Dashboard + messages inbox
+│   ├── components/        # AuthProvider, Navbar, Gallery, Feed, ChatWidget, etc.
+│   ├── login/             # Admin login page
+│   ├── profile/           # Edit profile page
+│   ├── post/[id]/         # Post detail page
+│   └── page.tsx           # Gallery (public) / Feed (authenticated)
+├── lib/
+│   ├── auth.ts            # JWT helpers
+│   └── prisma.ts          # Prisma client singleton
+└── generated/prisma/      # Auto-generated Prisma types
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+prisma/
+├── schema.prisma          # Data models (User, Post, View, Message)
+├── seed.ts                # Admin user seeder
+└── migrations/            # Migration history
+```
 
-## Deploy on Vercel
+## API Routes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Method | Route                | Auth     | Description                     |
+|--------|----------------------|----------|---------------------------------|
+| POST   | `/api/auth/login`    | Public   | Login, returns JWT cookie       |
+| POST   | `/api/auth/logout`   | Public   | Clear session cookie            |
+| GET    | `/api/auth/me`       | Required | Get current user                |
+| GET    | `/api/posts`         | Public   | List posts (cursor pagination)  |
+| POST   | `/api/posts`         | Required | Create a post                   |
+| GET    | `/api/posts/[id]`    | Public   | Get single post                 |
+| DELETE | `/api/posts/[id]`    | Required | Delete own post                 |
+| POST   | `/api/messages`      | Public   | Send a message                  |
+| GET    | `/api/messages`      | Required | List all messages               |
+| PATCH  | `/api/messages/[id]` | Required | Mark read / reply               |
+| DELETE | `/api/messages/[id]` | Required | Delete message                  |
+| POST   | `/api/upload`        | Required | Upload image/video              |
+| PUT    | `/api/profile`       | Required | Update name / avatar            |
+| POST   | `/api/views`         | Public   | Track a post view               |
+| GET    | `/api/views`         | Required | View analytics                  |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Database Models
+
+- **User** -- Admin account (username, email, password hash, avatar)
+- **Post** -- Media content with optional text, geolocation, and location name
+- **View** -- Per-post visitor analytics (IP, user agent, country, city, timestamp)
+- **Message** -- Visitor messages with read status and optional admin reply
+
+## Scripts
+
+```bash
+npm run dev       # Start development server
+npm run build     # Production build
+npm run start     # Start production server
+npm run lint      # Run ESLint
+```

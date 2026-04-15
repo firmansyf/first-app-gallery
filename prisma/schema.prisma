@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  name      String
+  avatar    String?
+  createdAt DateTime @default(now())
+  posts     Post[]
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  content   String?
+  mediaUrl  String?
+  mediaType String?
+  latitude  Float?
+  longitude Float?
+  location  String?
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  views     View[]
+}
+
+model View {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  ipAddress String?
+  userAgent String?
+  country   String?
+  city      String?
+  viewedAt  DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  name      String
+  text      String
+  reply     String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
