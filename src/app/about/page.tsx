@@ -85,7 +85,7 @@ export default function AboutPage() {
           </ul>
         </section>
 
-        <section className="space-y-3">
+        {/* <section className="space-y-3">
           <h2 className="text-lg font-bold text-gray-900 font-serif">
             Teknologi
           </h2>
@@ -95,7 +95,7 @@ export default function AboutPage() {
             dirangkai untuk satu tujuan: pengalaman yang sederhana dan
             personal.
           </p>
-        </section>
+        </section> */}
 
         <section className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <p className="text-sm text-gray-500">
